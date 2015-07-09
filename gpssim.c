@@ -67,7 +67,7 @@ typedef int bool;
 #define R2D 57.2957795131
 
 #define SPEED_OF_LIGHT 2.99792458e8
-#define LAMBDA_L1 0.190293672798365
+#define LAMBDA_L1 0.190293672798365 //XXX L1の波長[m]
 
 /*! \brief GPS L1 Carrier frequency */
 #define CARR_FREQ (1575.42e6)
@@ -363,6 +363,7 @@ void date2gps(const datetime_t *t, gpstime_t *g)
  */
 void xyz2llh(const double *xyz, double *llh)
 {
+//XXX 近似ではダメか？
 	double a,eps,e,e2;
 	double x,y,z;
 	double rho2,dz,zdz,nh,slat,n,dz_new;
@@ -1215,6 +1216,9 @@ void computeCodePhase(channel_t *chan, range_t rho1, double dt)
 
 	// Initial code phase and data bit counters.
 	ms = (((chan->rho0.g.sec-chan->g0.sec)+6.0) - chan->rho0.range/SPEED_OF_LIGHT)*1000.0;
+	//XXX 6.0は、サブフレーム長時間？
+	//XXX chan->g0は、チャンネルのデータ列の先頭時刻。
+	//XXX weekをまたがないと仮定している。
 
 	ims = (int)ms;
 	chan->code_phase = (ms-(double)ims)*CA_SEQ_LEN; // in chip
@@ -1227,8 +1231,8 @@ void computeCodePhase(channel_t *chan, range_t rho1, double dt)
 
 	chan->icode = ims; // 1 code = 1 ms
 
-	chan->codeCA = chan->ca[(int)chan->code_phase]*2-1;
-	chan->dataBit = (int)((chan->dwrd[chan->iword]>>(29-chan->ibit)) & 0x1UL)*2-1;
+	chan->codeCA = chan->ca[(int)chan->code_phase]*2-1; //XXX 1 or -1
+	chan->dataBit = (int)((chan->dwrd[chan->iword]>>(29-chan->ibit)) & 0x1UL)*2-1; //XXX 1 or -1
 
 	// Save current pseudorange
 	chan->rho0 = rho1;
@@ -2001,7 +2005,7 @@ int main(int argc, char *argv[])
 							}
 
 							// Set new navigation data bit
-							chan[i].dataBit = (int)((chan[i].dwrd[chan[i].iword]>>(29-chan[i].ibit)) & 0x1UL)*2-1;
+							chan[i].dataBit = (int)((chan[i].dwrd[chan[i].iword]>>(29-chan[i].ibit)) & 0x1UL)*2-1; //XXX 1→1 0→-1
 						}
 					}
 
